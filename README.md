@@ -10,17 +10,22 @@ And, please, fork Phorque.
 Running Phorque
 ---------------
 
+Install it:
+
+    python setup.py build
+    python setup.py install
+
 For a list of options:
 
-    python phorque.py -h
+    phorque.py -h
     
 Start it up:
 
-    python phorque.py
+    phorque.py
 
 However, usually I run it like so (-d is for debug mode):
 
-    python phorque.py -d 2>&1 | tee phorque.log
+    phorque.py -d 2>&1 | tee phorque.log
 
 
 Configuring Phorque
