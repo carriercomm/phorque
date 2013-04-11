@@ -1,7 +1,7 @@
 Phorque
 =======
 
-Phorque monitors a T__orque__ cluster, executes a policy to determine how many instances to launch or terminate, and then provisions instances on infrastructure clouds via __Ph__antom, an open source auto-scaling service that uses Amazon's auto-scaling API.
+Phorque monitors a T<b>orque</b> cluster, executes a policy to determine how many instances to launch or terminate, and then provisions instances on infrastructure clouds via __Ph__antom, an open source auto-scaling service that uses Amazon's auto-scaling API.
 
 And, please, fork Phorque.
 
