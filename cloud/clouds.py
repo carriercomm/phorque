@@ -6,7 +6,7 @@ import os
 import time
 
 from boto.ec2.autoscale import AutoScaleConnection
-from boto.ec2.autoscale import Tag # needed for Phantom
+from boto.ec2.autoscale import Tag  # needed for Phantom
 from boto.ec2.autoscale.group import AutoScalingGroup
 from boto.ec2.autoscale.launchconfig import LaunchConfiguration
 from boto.regioninfo import RegionInfo
@@ -37,14 +37,14 @@ class Cloud(object):
         self.maxed = False
         self._last_launch_attempt = datetime.datetime.utcnow()
         self._initialize()
-            
+
     def _create_connection(self):
         LOG.debug("Creating connection for %s" % self.config.name)
         self._conn = boto.connect_ec2(self.config.access_id,
                                       self.config.secret_key)
         self._conn.host = self.config.cloud_uri
         self._conn.port = self.config.cloud_port
-        
+
     def _create_autoscale_connection(self):
         LOG.debug("Creating autoscale connection for %s" % self.config.name)
         region = RegionInfo(name=self.config.cloud_type,
@@ -104,11 +104,11 @@ class Cloud(object):
             n_preserve_key = "minimum_vms"
             ordered_clouds = cloud_guess + ":-1"
             n_preserve = 0
-            policy_tag = Tag(connection=self._as_conn, key=policy_name_key, 
+            policy_tag = Tag(connection=self._as_conn, key=policy_name_key,
                              value=policy_name, resource_id=name)
-            clouds_tag = Tag(connection=self._as_conn, key=ordered_clouds_key, 
+            clouds_tag = Tag(connection=self._as_conn, key=ordered_clouds_key,
                              value=ordered_clouds, resource_id=name)
-            npreserve_tag = Tag(connection=self._as_conn, key=n_preserve_key, 
+            npreserve_tag = Tag(connection=self._as_conn, key=n_preserve_key,
                                 value=n_preserve, resource_id=name)
             tags = [policy_tag, clouds_tag, npreserve_tag]
             zones = [self.config.az]
@@ -154,12 +154,12 @@ class Cloud(object):
                                                 num_instances))
         if num_instances >= self.config.max_instances:
             LOG.warn("%s reached the max (%s) instances: %s" % (
-                self.config.name, self.config.max_instances, 
+                self.config.name, self.config.max_instances,
                 num_instances))
             self.maxed = True
         else:
             self.maxed = False
- 
+
     def _refresh_asg(self):
         LOG.debug("%s: refreshing autoscale group" % self.config.name)
         asg_name = self.config.asg_name
@@ -173,20 +173,20 @@ class Cloud(object):
     def refresh(self, cluster):
         self._refresh_instances()
         self._refresh_asg()
-        
+
     def get_total_num_valid_cores(self):
         LOG.debug("%s: getting number of valid cores" % self.config.name)
         total_num_valid_cores = 0
         num_valid_instances = len(self.get_valid_instances())
-        total_num_valid_cores = num_valid_instances * self.config.instance_cores
+        total_valid_cores = num_valid_instances * self.config.instance_cores
         num_desired_instances = self._asg.desired_capacity
         num_desired_cores = num_desired_instances * self.config.instance_cores
-        if num_desired_cores != total_num_valid_cores: 
+        if num_desired_cores != total_num_valid_cores:
             LOG.debug("\tmismatching core counts")
             LOG.debug("\tnum_desired_cores: %d" % (num_desired_cores))
-            LOG.debug("\ttotal_num_valid_cores: %d" % (total_num_valid_cores))
-        return total_num_valid_cores
-    
+            LOG.debug("\ttotal_valid_cores: %d" % (total_valid_cores))
+        return total_valid_cores
+
     def get_instance_by_id(self, id):
         LOG.debug("Searching for instance %s" % id)
         for instances in self.all_instances:
@@ -216,9 +216,9 @@ class Cloud(object):
             secs_to_charge = self.config.charge_time_secs - cur_charge_secs
             LOG.debug("%s:%s: charge: %d; current: %d; to charge: %d" % (
                 instance.id, instance.public_dns_name,
-                self.config.charge_time_secs, 
+                self.config.charge_time_secs,
                 cur_charge_secs, secs_to_charge))
-            if secs_to_charge < (3*sleep_secs):
+            if secs_to_charge < (3 * sleep_secs):
                 instances_close_to_charge.append(instance.public_dns_name)
         return instances_close_to_charge
 
@@ -227,10 +227,11 @@ class Cloud(object):
             return
         LOG.debug("Deleting instances: %s" % instance_ids)
         # TODO(pdmars): this has the potential to kill instances running jobs
-        # maybe I should err on the side of having extra instances if the 
+        # maybe I should err on the side of having extra instances if the
         # capacity is higher than the cloud can currently support
         num_instances = len(self.all_instances)
-        if (self._asg.desired_capacity > num_instances) and (num_instances > 0):
+        if ((self._asg.desired_capacity > num_instances) and
+                (num_instances > 0)):
             LOG.warn("Desired capacity is greater than num_instances running")
             LOG.warn("Adjusting desired capacity to match")
             self.set_capacity(num_instances)
@@ -239,13 +240,13 @@ class Cloud(object):
             # TODO(pdmars): due to a bug in phantom, maybe this will help
             # 2013/04/05: this might not be relevant anymore
             time.sleep(.1)
-        
+
     def launch_autoscale_instances(self, num_instances=1):
         new_capacity = self._asg.desired_capacity + int(num_instances)
         if new_capacity > self.config.max_instances:
             new_capacity = self.config.max_instances
             LOG.warn("%s can launch %s total instances" % (self.config.name,
-                new_capacity))
+                                                           new_capacity))
         self._last_launch_attempt = datetime.datetime.utcnow()
         LOG.debug("Setting cloud capacity for %s to %s" % (self.config.name,
                                                            new_capacity))
@@ -266,13 +267,13 @@ class Clouds(object):
 
     def _create_cloud_from_config(self, name):
         return Cloud(CloudConfig(name, self._global_config))
-        
+
     def _get_clouds_ordered_by_price(self, descending=False):
         clouds = self.clouds.values()
         sorted_clouds = sorted(clouds, key=lambda x: x.config.price,
                                reverse=descending)
         return sorted_clouds
-            
+
     def _initialize(self):
         LOG.debug("Initializing all clouds")
         for name in self.cloud_names:
@@ -289,7 +290,7 @@ class Clouds(object):
 
     def get_clouds_low_to_high(self):
         return self._clouds_low_to_high
-    
+
     def get_total_num_valid_cores(self):
         total_num_valid_cores = 0
         for cloud in self.get_clouds_low_to_high():

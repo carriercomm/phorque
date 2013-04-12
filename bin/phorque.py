@@ -24,12 +24,12 @@ class Phorque(Thread):
         self.config = config
         self.loop_sleep_secs = config.getint("Phorque", "loop_sleep_secs")
         self.cluster_directory = config.get("Phorque", "cluster_directory")
-        self.cloud_names = list(set(config.sections()) - 
-                                   set(STATIC_CONFIG_SECTIONS))
+        self.cloud_names = list(set(config.sections()) -
+                                set(STATIC_CONFIG_SECTIONS))
         self.policy_name = config.get("Policy", "name")
         Policy = getattr(policies, self.policy_name)
         self.policy = Policy()
-            
+
     def _loop(self, cluster, clouds):
         while not SIGEXIT:
             try:
@@ -52,7 +52,7 @@ class Phorque(Thread):
                 LOG.error("Error executing the policy: %s" % str(e))
             LOG.info("Sleeping for %s seconds" % self.loop_sleep_secs)
             time.sleep(self.loop_sleep_secs)
-            
+
     def run(self):
         LOG.debug("Configuring cluster: %s" % self.cluster_directory)
         if os.path.exists(self.cluster_directory):
@@ -78,6 +78,7 @@ def clean_exit(signum, frame):
     global SIGEXIT
     SIGEXIT = True
     LOG.critical("Exiting at the next possible time. Please stand by.")
+
 
 def main():
     (options, args) = parse_options()

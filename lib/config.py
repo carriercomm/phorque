@@ -26,12 +26,12 @@ class CloudConfig(object):
         try:
             self.access_id = os.environ[access_id.lstrip('$')]
         except KeyError:
-            self.access_id = access_id  
+            self.access_id = access_id
         secret_key = self._config.get(name, "secret_key")
         try:
             self.secret_key = os.environ[secret_key.lstrip('$')]
         except KeyError:
             self.secret_key = secret_key
-    
+
     def get_loop_sleep_secs(self):
         return self._config.getint("Phorque", "loop_sleep_secs")

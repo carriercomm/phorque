@@ -5,7 +5,7 @@ import re
 from lib.util import Command
 
 
-LOG = logging.getLogger(__name__)      
+LOG = logging.getLogger(__name__)
 
 
 class Node(object):
@@ -14,10 +14,10 @@ class Node(object):
         self.np = np
         self.state = state
         self.terminate_me = False
-        
+
     def __repr__(self):
         return "Node<%s, %s, %s>" % (self.public_dns_name, self.np, self.state)
-       
+
 
 class BaseCluster(object):
     def __init__(self):
@@ -43,7 +43,7 @@ class TorqueCluster(BaseCluster):
         LOG.debug("Set qstat command: %s" % self._qstat_cmd)
         LOG.debug("Set pbsnodes command: %s" % self._pbsnodes_cmd)
         LOG.debug("Set qmgr command: %s" % self._qmgr_cmd)
-        
+
     def _update_job_info(self):
         qstat = Command([self._qstat_cmd])
         qstat_rc = qstat.execute()
@@ -62,7 +62,7 @@ class TorqueCluster(BaseCluster):
                 if match.group(10) == 'Q':
                     queued_cores += int(match.group(7))
                     queued_jobs += 1
-                total_jobs += 1    
+                total_jobs += 1
         self.num_queued_jobs = queued_jobs
         self.num_queued_cores = queued_cores
         self.num_total_jobs = total_jobs
@@ -80,7 +80,7 @@ class TorqueCluster(BaseCluster):
         pbsnodes_rc = pbsnodes.execute()
         if pbsnodes_rc != 0:
             LOG.error("pbsnodes returned %d" % pbsnodes_rc)
-            return                                                
+            return
         node_line = "\n(\S+)\n\s+state\s=\s(\S+)\n\s+np\s=\s(\d+)\n"
         node_pattern = re.compile(node_line)
         matches = re.findall(node_pattern, pbsnodes.stdout)
@@ -101,7 +101,7 @@ class TorqueCluster(BaseCluster):
 
     def _update_public_dns_names(self):
         self._public_dns_names = [x.public_dns_name for x in self.nodes]
-        
+
     def _add_new_node(self, public_dns_name, np):
         qmgr_cmd = str(self._qmgr_cmd) + " -c \"create node %s np=%d\""
         qmgr_cmd = qmgr_cmd % (public_dns_name, np)
@@ -123,7 +123,7 @@ class TorqueCluster(BaseCluster):
         if public_dns_name in self._has_booted:
             self._has_booted.remove(public_dns_name)
         LOG.debug("Successfully removed node: %s" % public_dns_name)
-    
+
     def remove_node(self, public_dns_name):
         if public_dns_name in self._public_dns_names:
             LOG.debug("%s is in the cluster, removing" % public_dns_name)
@@ -157,34 +157,34 @@ class TorqueCluster(BaseCluster):
         self._update_node_info()
         self._update_public_dns_names()
         LOG.debug("Nodes successfully booted: %s" % self._has_booted)
-        
+
     def get_num_queued_jobs(self):
         return self.num_queued_jobs
 
     def get_num_queued_job_cores(self):
         return self.num_queued_cores
-        
+
     def get_num_total_jobs(self):
         return self.num_total_jobs
 
     def get_num_down_cluster_cores(self):
         return self.num_down_cores
-        
+
     def get_num_free_cluster_cores(self):
         return self.num_free_cores
-        
+
     def get_num_total_cluster_cores(self):
         return self.num_total_cores
-    
+
     def get_num_total_cluster_nodes(self):
         return self.num_total_nodes
-    
+
     def get_public_dns_names_of_idle_or_down_nodes(self, require_booted=False):
         names = []
         for node in self.nodes:
-            if (((("idle" in node.state) or ("down" in node.state) or 
-                ("offline" in node.state) or ("free" in node.state))) and 
-                (not "job-exclusive" in node.state)):
+            if (((("idle" in node.state) or ("down" in node.state) or
+                ("offline" in node.state) or ("free" in node.state))) and
+               (not "job-exclusive" in node.state)):
                 if require_booted:
                     if node.public_dns_name in self._has_booted:
                         names.append(node.public_dns_name)
