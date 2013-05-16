@@ -213,7 +213,9 @@ class Cloud(object):
         for instance in valid_instances:
             launch_time = datetime.datetime.strptime(instance.launch_time,
                                                      time_fmt)
-            time_diff_secs = (cur_utc_time - launch_time).total_seconds()
+            time_diff = cur_utc_time - launch_time
+            # Ignores microseconds
+            time_diff_secs = time_diff.seconds + time_diff.days * 24 * 3600
             cur_charge_secs = time_diff_secs % self.config.charge_time_secs
             secs_to_charge = self.config.charge_time_secs - cur_charge_secs
             LOG.debug("%s:%s: charge: %d; current: %d; to charge: %d" % (
