@@ -41,7 +41,8 @@ class Cloud(object):
     def _create_connection(self):
         LOG.debug("Creating connection for %s" % self.config.name)
         self._conn = boto.connect_ec2(self.config.access_id,
-                                      self.config.secret_key)
+                                      self.config.secret_key,
+                                      validate_certs=False)
         self._conn.host = self.config.cloud_uri
         self._conn.port = self.config.cloud_port
 
@@ -54,7 +55,8 @@ class Cloud(object):
             aws_secret_access_key=self.config.secret_key,
             is_secure=True,
             port=self.config.as_port,
-            region=region)
+            region=region,
+            validate_certs=False)
 
     def _create_or_set_launch_configuration(self):
         name = self.config.lc_name
