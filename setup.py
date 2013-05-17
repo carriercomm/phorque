@@ -10,4 +10,5 @@ setup(
     author="Paul Marshall",
     author_email="paul.marshall@colorado.edu",
     license=open("LICENSE.txt").read(),
+    install_requires=['boto >= 2.6, < 2.9.3'],
 )
