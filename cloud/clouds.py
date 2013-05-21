@@ -141,7 +141,7 @@ class Cloud(object):
         LOG.debug("%s: getting instance information" % self.config.name)
         self.all_instances = []
         instances = []
-        as_instances = self._as_conn.get_all_autoscaling_instances()
+        as_instances = self._asg.instances
         as_instance_ids = [i.instance_id for i in as_instances]
         reservations = self._conn.get_all_instances()
         for reservation in reservations:
@@ -173,8 +173,8 @@ class Cloud(object):
             LOG.warn("\tunable to refresh autoscale group: %s" % asg_name)
 
     def refresh(self, cluster):
-        self._refresh_instances()
         self._refresh_asg()
+        self._refresh_instances()
 
     def get_total_num_valid_cores(self):
         LOG.debug("%s: getting number of valid cores" % self.config.name)
