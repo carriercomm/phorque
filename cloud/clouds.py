@@ -68,7 +68,12 @@ class Cloud(object):
                 self._lc = lc[0]
         if not self._lc:
             #TODO(pdmars): key and security groups are hardcoded for now, gross
-            user_data = "phorque_instance"
+            try:
+                user_data_file = self.config.user_data_file
+                with open(user_data_file) as f:
+                    user_data = f.read()
+            except:
+                user_data = None
             LOG.debug("Creating launch configuration %s" % name)
             LOG.debug("\tname: %s" % name)
             LOG.debug("\timage_id: %s" % self.config.image_id)

@@ -22,6 +22,7 @@ class CloudConfig(object):
         self.instance_cores = self._config.getint(name, "instance_cores")
         self.max_instances = self._config.getint(name, "max_instances")
         self.charge_time_secs = self._config.getint(name, "charge_time_secs")
+        self.user_data_file = self._config.get(name, "user_data_file")
         access_id = self._config.get(name, "access_id")
         try:
             self.access_id = os.environ[access_id.lstrip('$')]
