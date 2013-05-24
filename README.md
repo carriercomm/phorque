@@ -75,6 +75,7 @@ Phorque's configuration file is divided into three sections: [Phorque], [Policy]
     instance_cores = 2
     max_instances = 1024
     charge_time_secs = 3600
+    user_data_file = /etc/phorque/user-data
 
 >_cloud\_uri_ is the URI for the cloud.
 

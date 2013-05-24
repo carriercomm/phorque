@@ -41,7 +41,8 @@ class Cloud(object):
     def _create_connection(self):
         LOG.debug("Creating connection for %s" % self.config.name)
         self._conn = boto.connect_ec2(self.config.access_id,
-                                      self.config.secret_key)
+                                      self.config.secret_key,
+                                      validate_certs=False)
         self._conn.host = self.config.cloud_uri
         self._conn.port = self.config.cloud_port
 
@@ -54,7 +55,8 @@ class Cloud(object):
             aws_secret_access_key=self.config.secret_key,
             is_secure=True,
             port=self.config.as_port,
-            region=region)
+            region=region,
+            validate_certs=False)
 
     def _create_or_set_launch_configuration(self):
         name = self.config.lc_name
@@ -66,7 +68,12 @@ class Cloud(object):
                 self._lc = lc[0]
         if not self._lc:
             #TODO(pdmars): key and security groups are hardcoded for now, gross
-            user_data = "phorque_instance"
+            if self.config.user_data_file is not None:
+                user_data_file = self.config.user_data_file
+                with open(user_data_file) as f:
+                    user_data = f.read()
+            else:
+                user_data = None
             LOG.debug("Creating launch configuration %s" % name)
             LOG.debug("\tname: %s" % name)
             LOG.debug("\timage_id: %s" % self.config.image_id)
@@ -139,7 +146,7 @@ class Cloud(object):
         LOG.debug("%s: getting instance information" % self.config.name)
         self.all_instances = []
         instances = []
-        as_instances = self._as_conn.get_all_autoscaling_instances()
+        as_instances = self._asg.instances
         as_instance_ids = [i.instance_id for i in as_instances]
         reservations = self._conn.get_all_instances()
         for reservation in reservations:
@@ -171,8 +178,8 @@ class Cloud(object):
             LOG.warn("\tunable to refresh autoscale group: %s" % asg_name)
 
     def refresh(self, cluster):
-        self._refresh_instances()
         self._refresh_asg()
+        self._refresh_instances()
 
     def get_total_num_valid_cores(self):
         LOG.debug("%s: getting number of valid cores" % self.config.name)
@@ -211,7 +218,9 @@ class Cloud(object):
         for instance in valid_instances:
             launch_time = datetime.datetime.strptime(instance.launch_time,
                                                      time_fmt)
-            time_diff_secs = (cur_utc_time - launch_time).total_seconds()
+            time_diff = cur_utc_time - launch_time
+            # Ignores microseconds
+            time_diff_secs = time_diff.seconds + time_diff.days * 24 * 3600
             cur_charge_secs = time_diff_secs % self.config.charge_time_secs
             secs_to_charge = self.config.charge_time_secs - cur_charge_secs
             LOG.debug("%s:%s: charge: %d; current: %d; to charge: %d" % (
